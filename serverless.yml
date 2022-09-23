@@ -1,0 +1,21 @@
+service: my-todos-gateway-gql
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  versionFunctions: false
+  region: us-east-1
+  apiGateway:
+    shouldStartNameWithService: true
+
+functions:
+  graphql:
+    handler: build/server.handler
+    events:
+      - http:
+          path: graphql
+          method: any
+          cors: true
+
+plugins:
+  - serverless-offline
