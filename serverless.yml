@@ -8,6 +8,12 @@ provider:
   apiGateway:
     shouldStartNameWithService: true
 
+custom:
+  serverless-offline:
+    httpPort: 4000
+    websocketPort: 4001
+    lambdaPort: 4002
+
 functions:
   graphql:
     handler: build/server.handler

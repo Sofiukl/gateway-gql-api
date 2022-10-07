@@ -10,21 +10,26 @@
     "deploy": "npm run build && AWS_ACCESS_KEY_ID=AKIA23H5NPW26XCSXKHX && AWS_SECRET_ACCESS_KEY=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 && serverless deploy"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^9.0.6",
+    "@graphql-tools/delegate": "^9.0.8",
     "@graphql-tools/schema": "^9.0.3",
     "@graphql-tools/stitch": "^8.7.10",
     "@graphql-tools/utils": "^8.11.0",
+    "@graphql-tools/wrap": "^9.2.3",
     "apollo-datasource-rest": "^3.7.0",
+    "apollo-link-http": "^1.5.17",
     "apollo-server": "^3.10.2",
     "apollo-server-lambda": "^3.10.2",
     "aws-sdk": "^2.1206.0",
     "axios": "^0.27.2",
+    "datasource-sql": "^2.0.1",
     "express": "^4.18.1",
     "graphql": "^15.0.0",
     "graphql-middleware": "^6.1.32",
+    "graphql-request": "^5.0.0",
     "graphql-shield": "^7.5.0",
     "graphql-upload": "^11.0.0",
     "jsonwebtoken": "^8.5.1",
+    "pg": "^8.8.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

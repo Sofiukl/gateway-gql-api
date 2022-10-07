@@ -1,0 +1,7 @@
+extend type GetUserResponse {
+  todos: [Todo]!
+}
+
+extend type Todo {
+  user: GetUserResponse!
+}

@@ -1,0 +1,26 @@
+type Todo {
+  id: ID!
+  title: String
+  description: String
+  assignee: String
+  priority: String
+  userId: String!
+}
+
+type TaskCreateResponse {
+  id: ID!
+}
+
+type Query {
+  todos(userId: ID!): [Todo]!
+}
+
+type Mutation {
+  saveTodo(
+    title: String!
+    description: String
+    assignee: String
+    priority: String
+    userId: String!
+  ): TaskCreateResponse!
+}
