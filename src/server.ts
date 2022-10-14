@@ -121,6 +121,7 @@ const createHandler = async () => {
       schema: gatewaySchema,
       csrfPrevention: true,
       cache: "bounded",
+      introspection: true,
       context: ({ req }) => {
         const user = getCurrentUser({ req });
         const filteredHeader: any = filterHeaders(req.headers, [
