@@ -1,10 +1,13 @@
 import { RESTDataSource } from "apollo-datasource-rest";
 import axios from "axios";
-
+import * as dotenv from "dotenv";
+dotenv.config();
 class TodoAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = "http://localhost:5000";
+    this.baseURL =
+      process.env.MY_TODOS_REST_SERVICE ||
+      "https://sm-my-todos-api.herokuapp.com";
   }
   public async getTasks(userId: string) {
     const url = `${this.baseURL}/list/${userId}`;

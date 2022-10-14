@@ -2,5 +2,5 @@
   "watch": ["src"],
   "ext": "ts,json, graphql",
   "ignore": ["src/**/*.spec.ts"],
-  "exec": "graphql-codegen --config codegen.yml && tsc && serverless offline start"
+  "exec": "graphql-codegen --config codegen.yml && tsc && node build/server.js"
 }

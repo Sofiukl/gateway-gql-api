@@ -1,6 +1,5 @@
-import { ApolloServer } from "apollo-server-lambda";
+import { ApolloServer } from "apollo-server";
 import fs from "fs";
-import express from "express";
 import { stitchSchemas } from "@graphql-tools/stitch";
 import { AsyncExecutor } from "@graphql-tools/utils";
 import { introspectSchema, wrapSchema } from "@graphql-tools/wrap";
@@ -13,6 +12,22 @@ import todosResolvers from "./resolvers/todos";
 import { getCurrentUser } from "./utils/auth";
 import { filterHeaders } from "./utils/common";
 import { CustomSQLDataSource } from "./datasources/task";
+import * as dotenv from "dotenv";
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
+dotenv.config();
+
+const normalizePort = (val: string) => {
+  const port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    return val;
+  }
+  if (port >= 0) {
+    return port;
+  }
+  return false;
+};
+const port = normalizePort(process.env.PORT || "3000");
 
 let schema = fs.readFileSync("./src/schema.graphql", "utf8");
 
@@ -45,110 +60,99 @@ const createLocalSchema = async (path: string) => {
 };
 
 const createHandler = async () => {
-  const userSchema = await createRemoteSchema(
-    "http://localhost:3000/dev/graphql"
-  );
-  const todoSchema = await createLocalSchema("./src/schema.todo.graphql");
-  const gatewaySchema = stitchSchemas({
-    subschemas: [userSchema, todoSchema],
-    typeDefs: schema,
-    resolvers: {
-      GetUserResponse: {
-        todos: {
-          selectionSet: `{ id }`,
-          resolve(user, args, context, info) {
-            return delegateToSchema({
-              schema: todoSchema,
-              operation: "query",
-              fieldName: "todos",
-              args: { userId: user.id },
-              context,
-              info,
-            });
+  try {
+    const userSchema = await createRemoteSchema(
+      process.env.MY_TODOS_USER_GQL_SERVICE ||
+        "https://my-todos-user-gql-api.herokuapp.com/graphql"
+    );
+    const todoSchema = await createLocalSchema("./src/schema.todo.graphql");
+    const gatewaySchema = stitchSchemas({
+      subschemas: [userSchema, todoSchema],
+      typeDefs: schema,
+      resolvers: {
+        GetUserResponse: {
+          todos: {
+            selectionSet: `{ id }`,
+            resolve(user, args, context, info) {
+              return delegateToSchema({
+                schema: todoSchema,
+                operation: "query",
+                fieldName: "todos",
+                args: { userId: user.id },
+                context,
+                info,
+              });
+            },
+          },
+        },
+        Todo: {
+          user: {
+            selectionSet: `{ id }`,
+            resolve(todo, args, context, info) {
+              console.log(`todo.userId : ${JSON.stringify(todo)}`);
+              return delegateToSchema({
+                schema: userSchema,
+                operation: "query",
+                fieldName: "user",
+                args: { userId: todo.userId },
+                context,
+                info,
+              });
+            },
           },
         },
       },
-      Todo: {
-        user: {
-          selectionSet: `{ id }`,
-          resolve(todo, args, context, info) {
-            console.log(`todo.userId : ${JSON.stringify(todo)}`);
-            return delegateToSchema({
-              schema: userSchema,
-              operation: "query",
-              fieldName: "user",
-              args: { userId: todo.userId },
-              context,
-              info,
-            });
+    });
+
+    // DB Config
+    // const knexConfig = {
+    //   client: "pg",
+    //   connection: {
+    //     database: "sofikul.mallick",
+    //     user: "sofikul.mallick",
+    //     password: "sofikul.mallick",
+    //     port: 5433,
+    //   },
+    // };
+
+    // const db = new CustomSQLDataSource(knexConfig);
+
+    const server = new ApolloServer({
+      schema: gatewaySchema,
+      csrfPrevention: true,
+      cache: "bounded",
+      context: ({ req }) => {
+        const user = getCurrentUser({ req });
+        const filteredHeader: any = filterHeaders(req.headers, [
+          "x-headers",
+          "x-level",
+          "authorization",
+        ]);
+
+        return {
+          customHeaders: {
+            headers: filteredHeader,
           },
-        },
+          authorization: filteredHeader["authorization"],
+          req,
+          currentUser: user,
+        };
       },
-    },
-  });
+      dataSources: () => {
+        return {
+          todoAPI: todoAPI,
+          // db,
+        };
+      },
+      plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    });
 
-  // DB Config
-  const knexConfig = {
-    client: "pg",
-    connection: {
-      database: "sofikul.mallick",
-      user: "sofikul.mallick",
-      password: "sofikul.mallick",
-      port: 5433,
-    },
-  };
-
-  const db = new CustomSQLDataSource(knexConfig);
-
-  const server = new ApolloServer({
-    schema: gatewaySchema,
-    csrfPrevention: true,
-    cache: "bounded",
-    context: ({ event, context, express }) => {
-      const user = getCurrentUser({ req: express.req });
-      const filteredHeader: any = filterHeaders(express.req.headers, [
-        "x-headers",
-        "x-level",
-        "authorization",
-      ]);
-
-      return {
-        headers: event.headers,
-        customHeaders: {
-          headers: filteredHeader,
-        },
-        authorization: filteredHeader["authorization"],
-        functionName: context.functionName,
-        event,
-        reqContext: context,
-        req: express.req,
-        currentUser: user,
-      };
-    },
-    dataSources: () => {
-      return {
-        todoAPI: todoAPI,
-        db,
-      };
-    },
-  });
-
-  // launch the server when the Lambda is called
-  return server.createHandler({
-    expressAppFromMiddleware(middleware) {
-      const app = express();
-      app.use(customMiddleware);
-      app.use(middleware);
-      return app;
-    },
-  });
+    const { url } = await server.listen(port);
+    console.log(`🚀  Server ready at ${url}`);
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
 };
 
-function customMiddleware(req: any, res: any, next: any) {
-  next();
-}
-
-exports.handler = async (event: any, context: any, callback: any) => {
-  const handler = await createHandler();
-  return await handler(event, context, callback);
-};
+createHandler();

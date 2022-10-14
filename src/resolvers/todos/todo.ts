@@ -9,8 +9,8 @@ export async function todos(
   console.log(`Req Header ::::  ${JSON.stringify(req.headers.authorization)}`);
   console.log(`Custom Header ::::  ${JSON.stringify(customHeaders)}`);
 
-  const task = await dataSources.db.getTask();
-  console.log(`DB Task: ${JSON.stringify(task)}`);
+  // const task = await dataSources.db.getTask();
+  // console.log(`DB Task: ${JSON.stringify(task)}`);
 
   return await dataSources.todoAPI.getTasks(input.userId);
 }
