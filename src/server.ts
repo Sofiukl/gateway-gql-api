@@ -14,6 +14,8 @@ import { filterHeaders } from "./utils/common";
 import { CustomSQLDataSource } from "./datasources/task";
 import * as dotenv from "dotenv";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
+import { getFirebaseUser } from "./auth/firebase";
+import { authDirective } from "./directives/auth.directive";
 dotenv.config();
 
 const normalizePort = (val: string) => {
@@ -51,11 +53,19 @@ const createRemoteSchema = async (url: string) => {
 const createLocalSchema = async (path: string) => {
   let todoSchemaStr = fs.readFileSync(path, "utf8");
 
-  let todoSchema = makeExecutableSchema({
-    typeDefs: [todoSchemaStr],
-    resolvers: todosResolvers,
-  });
+  // let todoSchema = makeExecutableSchema({
+  //   typeDefs: [todoSchemaStr],
+  //   resolvers: todosResolvers,
+  // });
 
+  const { authDirectiveTransformer } = authDirective('auth');
+  const todoSchema = authDirectiveTransformer(
+    makeExecutableSchema({
+      typeDefs: [todoSchemaStr],
+      resolvers: todosResolvers,
+    }),
+  );
+    
   return { schema: todoSchema };
 };
 
@@ -122,8 +132,9 @@ const createHandler = async () => {
       csrfPrevention: true,
       cache: "bounded",
       introspection: true,
-      context: ({ req }) => {
-        const user = getCurrentUser({ req });
+      context: async ({ req }) => {
+        //const user = getCurrentUser({ req });
+        const user = await getFirebaseUser({req});
         const filteredHeader: any = filterHeaders(req.headers, [
           "x-headers",
           "x-level",

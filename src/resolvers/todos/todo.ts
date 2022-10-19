@@ -6,8 +6,8 @@ export async function todos(
   { req, customHeaders, currentUser, dataSources }: any
 ): Promise<Todo[]> {
   console.log(`currentUser ::::  ${JSON.stringify(currentUser)}`);
-  console.log(`Req Header ::::  ${JSON.stringify(req.headers.authorization)}`);
-  console.log(`Custom Header ::::  ${JSON.stringify(customHeaders)}`);
+  //console.log(`Req Header ::::  ${JSON.stringify(req.headers.authorization)}`);
+  //console.log(`Custom Header ::::  ${JSON.stringify(customHeaders)}`);
 
   // const task = await dataSources.db.getTask();
   // console.log(`DB Task: ${JSON.stringify(task)}`);

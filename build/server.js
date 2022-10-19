@@ -45,10 +45,11 @@ const graphql_1 = require("graphql");
 const graphql_request_1 = require("graphql-request");
 const TodoAPI_1 = __importDefault(require("./datasources/TodoAPI"));
 const todos_1 = __importDefault(require("./resolvers/todos"));
-const auth_1 = require("./utils/auth");
 const common_1 = require("./utils/common");
 const dotenv = __importStar(require("dotenv"));
 const apollo_server_core_1 = require("apollo-server-core");
+const firebase_1 = require("./auth/firebase");
+const auth_directive_1 = require("./directives/auth.directive");
 dotenv.config();
 const normalizePort = (val) => {
     const port = parseInt(val, 10);
@@ -79,10 +80,15 @@ const createRemoteSchema = (url) => __awaiter(void 0, void 0, void 0, function* 
 });
 const createLocalSchema = (path) => __awaiter(void 0, void 0, void 0, function* () {
     let todoSchemaStr = fs_1.default.readFileSync(path, "utf8");
-    let todoSchema = (0, schema_1.makeExecutableSchema)({
+    // let todoSchema = makeExecutableSchema({
+    //   typeDefs: [todoSchemaStr],
+    //   resolvers: todosResolvers,
+    // });
+    const { authDirectiveTransformer } = (0, auth_directive_1.authDirective)('auth');
+    const todoSchema = authDirectiveTransformer((0, schema_1.makeExecutableSchema)({
         typeDefs: [todoSchemaStr],
         resolvers: todos_1.default,
-    });
+    }));
     return { schema: todoSchema };
 });
 const createHandler = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -142,8 +148,10 @@ const createHandler = () => __awaiter(void 0, void 0, void 0, function* () {
             schema: gatewaySchema,
             csrfPrevention: true,
             cache: "bounded",
-            context: ({ req }) => {
-                const user = (0, auth_1.getCurrentUser)({ req });
+            introspection: true,
+            context: ({ req }) => __awaiter(void 0, void 0, void 0, function* () {
+                //const user = getCurrentUser({ req });
+                const user = yield (0, firebase_1.getFirebaseUser)({ req });
                 const filteredHeader = (0, common_1.filterHeaders)(req.headers, [
                     "x-headers",
                     "x-level",
@@ -157,7 +165,7 @@ const createHandler = () => __awaiter(void 0, void 0, void 0, function* () {
                     req,
                     currentUser: user,
                 };
-            },
+            }),
             dataSources: () => {
                 return {
                     todoAPI: TodoAPI_1.default,

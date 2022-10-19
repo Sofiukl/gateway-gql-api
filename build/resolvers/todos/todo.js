@@ -13,8 +13,8 @@ exports.todos = void 0;
 function todos(_, input, { req, customHeaders, currentUser, dataSources }) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`currentUser ::::  ${JSON.stringify(currentUser)}`);
-        console.log(`Req Header ::::  ${JSON.stringify(req.headers.authorization)}`);
-        console.log(`Custom Header ::::  ${JSON.stringify(customHeaders)}`);
+        //console.log(`Req Header ::::  ${JSON.stringify(req.headers.authorization)}`);
+        //console.log(`Custom Header ::::  ${JSON.stringify(customHeaders)}`);
         // const task = await dataSources.db.getTask();
         // console.log(`DB Task: ${JSON.stringify(task)}`);
         return yield dataSources.todoAPI.getTasks(input.userId);

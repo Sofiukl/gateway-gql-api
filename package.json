@@ -24,6 +24,7 @@
     "datasource-sql": "^2.0.1",
     "dotenv": "^16.0.3",
     "express": "^4.18.1",
+    "firebase-admin": "^11.2.0",
     "graphql": "^15.0.0",
     "graphql-middleware": "^6.1.32",
     "graphql-request": "^5.0.0",
