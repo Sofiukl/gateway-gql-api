@@ -1,21 +1,18 @@
 import { ApolloServer } from "apollo-server";
 import fs from "fs";
 import { stitchSchemas } from "@graphql-tools/stitch";
-import { AsyncExecutor } from "@graphql-tools/utils";
-import { introspectSchema, wrapSchema } from "@graphql-tools/wrap";
+import { wrapSchema } from "@graphql-tools/wrap";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { delegateToSchema } from "@graphql-tools/delegate";
-import { print } from "graphql";
-import { rawRequest } from "graphql-request";
 import todoAPI from "./datasources/TodoAPI";
 import todosResolvers from "./resolvers/todos";
-import { getCurrentUser } from "./utils/auth";
 import { filterHeaders } from "./utils/common";
 import { CustomSQLDataSource } from "./datasources/task";
 import * as dotenv from "dotenv";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 import { getFirebaseUser } from "./auth/firebase";
 import { authDirective } from "./directives/auth.directive";
+import { fetchUserSchema, userExecutor } from "./executors/schema-executors";
 dotenv.config();
 
 const normalizePort = (val: string) => {
@@ -33,31 +30,12 @@ const port = normalizePort(process.env.PORT || "3000");
 
 let schema = fs.readFileSync("./src/schema.graphql", "utf8");
 
-const createRemoteSchema = async (url: string) => {
-  const executor: AsyncExecutor = async ({ document, variables, context }) => {
-    //TODO: context is undefined here and use dynamic auth token as coming in header
-    console.log(`CONTEXT : ${context}`);
-    const query = print(document);
-    return await rawRequest(url, query, variables, {
-      Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InUxIiwiZW1haWwiOiJzbWFsbGlja0BlbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE2NjQ5NjI5MjIsImV4cCI6MTY2NDk3MzcyMn0.NjLcJr55ahNqxZ21RUnnEXfmjneaAxuGdMNdujLdaKw`,
-    });
-  };
-  const schema = wrapSchema({
-    schema: await introspectSchema(executor),
-    executor: executor,
-  });
-
-  return schema;
-};
-
 const createLocalSchema = async (path: string) => {
   let todoSchemaStr = fs.readFileSync(path, "utf8");
-
   // let todoSchema = makeExecutableSchema({
   //   typeDefs: [todoSchemaStr],
   //   resolvers: todosResolvers,
   // });
-
   const { authDirectiveTransformer } = authDirective('auth');
   const todoSchema = authDirectiveTransformer(
     makeExecutableSchema({
@@ -71,13 +49,12 @@ const createLocalSchema = async (path: string) => {
 
 const createHandler = async () => {
   try {
-    const userSchema = await createRemoteSchema(
-      process.env.MY_TODOS_USER_GQL_SERVICE ||
-        "https://my-todos-user-gql-api.herokuapp.com/graphql"
-    );
+    const userSchema = await fetchUserSchema();
     const todoSchema = await createLocalSchema("./src/schema.todo.graphql");
     const gatewaySchema = stitchSchemas({
-      subschemas: [userSchema, todoSchema],
+      subschemas: [
+        wrapSchema({schema: userSchema, executor: userExecutor}), 
+        todoSchema],
       typeDefs: schema,
       resolvers: {
         GetUserResponse: {

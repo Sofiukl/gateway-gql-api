@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "^9.0.8",
+    "@graphql-tools/load": "^7.7.7",
     "@graphql-tools/schema": "^9.0.3",
     "@graphql-tools/stitch": "^8.7.10",
+    "@graphql-tools/url-loader": "^7.16.4",
     "@graphql-tools/utils": "^8.11.0",
     "@graphql-tools/wrap": "^9.2.3",
     "apollo-datasource-rest": "^3.7.0",
@@ -21,6 +23,7 @@
     "apollo-server-core": "^3.10.3",
     "aws-sdk": "^2.1206.0",
     "axios": "^0.27.2",
+    "cross-undici-fetch": "^0.4.14",
     "datasource-sql": "^2.0.1",
     "dotenv": "^16.0.3",
     "express": "^4.18.1",

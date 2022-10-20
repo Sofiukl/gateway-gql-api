@@ -41,8 +41,6 @@ const stitch_1 = require("@graphql-tools/stitch");
 const wrap_1 = require("@graphql-tools/wrap");
 const schema_1 = require("@graphql-tools/schema");
 const delegate_1 = require("@graphql-tools/delegate");
-const graphql_1 = require("graphql");
-const graphql_request_1 = require("graphql-request");
 const TodoAPI_1 = __importDefault(require("./datasources/TodoAPI"));
 const todos_1 = __importDefault(require("./resolvers/todos"));
 const common_1 = require("./utils/common");
@@ -50,6 +48,7 @@ const dotenv = __importStar(require("dotenv"));
 const apollo_server_core_1 = require("apollo-server-core");
 const firebase_1 = require("./auth/firebase");
 const auth_directive_1 = require("./directives/auth.directive");
+const schema_executors_1 = require("./executors/schema-executors");
 dotenv.config();
 const normalizePort = (val) => {
     const port = parseInt(val, 10);
@@ -63,21 +62,6 @@ const normalizePort = (val) => {
 };
 const port = normalizePort(process.env.PORT || "3000");
 let schema = fs_1.default.readFileSync("./src/schema.graphql", "utf8");
-const createRemoteSchema = (url) => __awaiter(void 0, void 0, void 0, function* () {
-    const executor = ({ document, variables, context }) => __awaiter(void 0, void 0, void 0, function* () {
-        //TODO: context is undefined here and use dynamic auth token as coming in header
-        console.log(`CONTEXT : ${context}`);
-        const query = (0, graphql_1.print)(document);
-        return yield (0, graphql_request_1.rawRequest)(url, query, variables, {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InUxIiwiZW1haWwiOiJzbWFsbGlja0BlbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE2NjQ5NjI5MjIsImV4cCI6MTY2NDk3MzcyMn0.NjLcJr55ahNqxZ21RUnnEXfmjneaAxuGdMNdujLdaKw`,
-        });
-    });
-    const schema = (0, wrap_1.wrapSchema)({
-        schema: yield (0, wrap_1.introspectSchema)(executor),
-        executor: executor,
-    });
-    return schema;
-});
 const createLocalSchema = (path) => __awaiter(void 0, void 0, void 0, function* () {
     let todoSchemaStr = fs_1.default.readFileSync(path, "utf8");
     // let todoSchema = makeExecutableSchema({
@@ -93,11 +77,13 @@ const createLocalSchema = (path) => __awaiter(void 0, void 0, void 0, function* 
 });
 const createHandler = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userSchema = yield createRemoteSchema(process.env.MY_TODOS_USER_GQL_SERVICE ||
-            "https://my-todos-user-gql-api.herokuapp.com/graphql");
+        const userSchema = yield (0, schema_executors_1.fetchUserSchema)();
         const todoSchema = yield createLocalSchema("./src/schema.todo.graphql");
         const gatewaySchema = (0, stitch_1.stitchSchemas)({
-            subschemas: [userSchema, todoSchema],
+            subschemas: [
+                (0, wrap_1.wrapSchema)({ schema: userSchema, executor: schema_executors_1.userExecutor }),
+                todoSchema
+            ],
             typeDefs: schema,
             resolvers: {
                 GetUserResponse: {
