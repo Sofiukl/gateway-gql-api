@@ -31,33 +31,43 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const apollo_datasource_rest_1 = require("apollo-datasource-rest");
-const axios_1 = __importDefault(require("axios"));
-const dotenv = __importStar(require("dotenv"));
-dotenv.config();
-class TodoAPI extends apollo_datasource_rest_1.RESTDataSource {
-    constructor() {
-        super();
-        this.baseURL =
-            process.env.MY_TODOS_REST_SERVICE ||
-                "https://sm-my-todos-api.herokuapp.com";
-    }
-    getTasks(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const url = `${this.baseURL}/list/${userId}`;
-            //console.log(`@todoAPI: calling ${url}`);
-            const resp = yield axios_1.default.get(url, {
-                headers: {
-                    Accept: "application/json",
-                },
-            });
-            //console.log(`TODO API data :: ${JSON.stringify(resp.data)}`);
-            return resp.data;
-        });
-    }
+exports.getFirebaseUser = void 0;
+const admin = __importStar(require("firebase-admin"));
+const sa = {
+    type: "service_account",
+    project_id: process.env.PROJECT_ID,
+    private_key_id: process.env.PRIVATE_KEY_ID,
+    private_key: process.env.PRIVATE_KEY ? process.env.PRIVATE_KEY.replace(/\\n/g, '\n') : '',
+    client_id: process.env.CLIENT_ID,
+    client_email: process.env.CLIENT_EMAIL,
+    auth_uri: process.env.AUTH_URI,
+    token_uri: process.env.TOKEN_URI,
+    auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL,
+    client_x509_cert_url: process.env.CLIENT_X509_CERT_URL
+};
+admin.initializeApp({
+    credential: admin.credential.cert(sa)
+});
+function getFirebaseUser(context) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log('INSIDE getFirebaseUser() ');
+        const authHeader = context.req.headers.authorization;
+        console.log(`getFirebaseUser ====>>> ${authHeader}`);
+        if (!authHeader)
+            return null;
+        const token = authHeader.replace(/^Bearer\s/, "");
+        if (!token)
+            return null;
+        try {
+            const payload = yield admin.auth().verifyIdToken(token);
+            console.log(`Decoded Id token : ${JSON.stringify(payload)}`);
+            return payload;
+        }
+        catch (err) {
+            console.log('Invalid token');
+        }
+        return null;
+    });
 }
-exports.default = new TodoAPI();
+exports.getFirebaseUser = getFirebaseUser;

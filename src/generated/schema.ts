@@ -41,6 +41,13 @@ export type QueryTodosArgs = {
   userId: Scalars['ID'];
 };
 
+export enum Role {
+  Admin = 'ADMIN',
+  Reviewer = 'REVIEWER',
+  Unknown = 'UNKNOWN',
+  User = 'USER'
+}
+
 export type TaskCreateResponse = {
   __typename?: 'TaskCreateResponse';
   id: Scalars['ID'];
