@@ -46,9 +46,9 @@ const todos_1 = __importDefault(require("./resolvers/todos"));
 const common_1 = require("./utils/common");
 const dotenv = __importStar(require("dotenv"));
 const apollo_server_core_1 = require("apollo-server-core");
-const firebase_1 = require("./auth/firebase");
 const auth_directive_1 = require("./directives/auth.directive");
 const schema_executors_1 = require("./executors/schema-executors");
+const auth_1 = require("./utils/auth");
 dotenv.config();
 const normalizePort = (val) => {
     const port = parseInt(val, 10);
@@ -136,8 +136,8 @@ const createHandler = () => __awaiter(void 0, void 0, void 0, function* () {
             cache: "bounded",
             introspection: true,
             context: ({ req }) => __awaiter(void 0, void 0, void 0, function* () {
-                //const user = getCurrentUser({ req });
-                const user = yield (0, firebase_1.getFirebaseUser)({ req });
+                const user = (0, auth_1.getCurrentUser)({ req });
+                // const user = await getFirebaseUser({req});
                 const filteredHeader = (0, common_1.filterHeaders)(req.headers, [
                     "x-headers",
                     "x-level",
