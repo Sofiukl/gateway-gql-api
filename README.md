@@ -10,16 +10,16 @@ const user = await getFirebaseUser({req});
 and comment below line
 const user = getCurrentUser({ req });
 # Firebase service account config required only if firebase auth enabled
-PROJECT_ID=REPLACE_WITH_PROJECT_ID
-PRIVATE_KEY_ID=REPLACE_WITH_PRIVATE_KEY_ID
-PRIVATE_KEY=REPLACE_WITH_PRIVATE_KEY
-CLIENT_EMAIL=REPLACE_WITH_CLIENT_EMAIL
-CLIENT_ID=REPLACE_WITH_CLIENT_ID
-FIREBASE_API_KEY=REPLACE_WITH_FIREBASE_API_KEY
-AUTH_URI=https://accounts.google.com/o/oauth2/auth
-TOKEN_URI=https://oauth2.googleapis.com/token
-AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
-CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-4hej6%40my-todos-4f578.iam.gserviceaccount.com
+PROJECT_ID=REPLACE_WITH_PROJECT_ID <br/>
+PRIVATE_KEY_ID=REPLACE_WITH_PRIVATE_KEY_ID <br/>
+PRIVATE_KEY=REPLACE_WITH_PRIVATE_KEY <br/>
+CLIENT_EMAIL=REPLACE_WITH_CLIENT_EMAIL <br/>
+CLIENT_ID=REPLACE_WITH_CLIENT_ID <br/>
+FIREBASE_API_KEY=REPLACE_WITH_FIREBASE_API_KEY <br/>
+AUTH_URI=https://accounts.google.com/o/oauth2/auth <br/>
+TOKEN_URI=https://oauth2.googleapis.com/token <br/>
+AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs <br/>
+CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-4hej6%40my-todos-4f578.iam.gserviceaccount.com <br/>
 
 
 
