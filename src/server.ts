@@ -13,6 +13,7 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-co
 import { getFirebaseUser } from "./auth/firebase";
 import { authDirective } from "./directives/auth.directive";
 import { fetchUserSchema, userExecutor } from "./executors/schema-executors";
+import { getCurrentUser } from "./utils/auth";
 dotenv.config();
 
 const normalizePort = (val: string) => {
@@ -110,8 +111,8 @@ const createHandler = async () => {
       cache: "bounded",
       introspection: true,
       context: async ({ req }) => {
-        //const user = getCurrentUser({ req });
-        const user = await getFirebaseUser({req});
+        const user = getCurrentUser({ req });
+        // const user = await getFirebaseUser({req});
         const filteredHeader: any = filterHeaders(req.headers, [
           "x-headers",
           "x-level",
