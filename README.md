@@ -24,7 +24,9 @@ TOKEN_URI=https://oauth2.googleapis.com/token <br/>
 AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs <br/>
 CLIENT_X509_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-4hej6%40my-todos-4f578.iam.gserviceaccount.com <br/>
 
-
+# Run Dependent service before running this service
+1. User Subgraph - https://github.com/Sofiukl/my-todos-user-gql-api
+2. Todo REST Service - https://github.com/Sofiukl/my-todos
 
 # Run code in dev mode 
 The below scripts we defined in our package.json
@@ -34,5 +36,5 @@ The below scripts we defined in our package.json
 "build": "npm run schema-type && tsc",
 "start": "npm run build && node build/server.js"
 </pre>
-We can use npm run start for running our dev server.
+We can use `npm run start` for running our dev server.
 
